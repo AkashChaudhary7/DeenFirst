@@ -231,36 +231,38 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
           </span>
         </div>
 
-        {/* 2-Column Metrics */}
-        <div className="grid grid-cols-2 gap-3 pt-1">
+        {/* 3-Column Metrics (Score, Pauses, Go-Backs) */}
+        <div className="grid grid-cols-3 gap-2.5 pt-1">
           <div
             onClick={() => onNavigateTab('discipline')}
-            className="cursor-pointer bg-black/30 hover:bg-black/40 rounded-2xl p-3 border border-emerald-500/20 flex items-center gap-2.5 transition"
+            className="cursor-pointer bg-black/30 hover:bg-black/40 rounded-2xl p-2.5 border border-emerald-500/20 text-center transition"
           >
-            <div className="w-8 h-8 rounded-xl bg-emerald-600/20 flex items-center justify-center text-emerald-300">
-              <Flame className="w-4 h-4" />
-            </div>
-            <div>
-              <span className="text-[10px] text-stone-300 block">Spiritual Streak</span>
-              <span className="text-sm font-extrabold text-white">
-                {stats.streakDays} Days
-              </span>
-            </div>
+            <span className="text-[10px] text-stone-300 block uppercase">Discipline</span>
+            <span className="text-base font-extrabold font-mono text-emerald-400">
+              {stats.disciplineScore || 84}/100
+            </span>
           </div>
 
           <div
             onClick={() => onNavigateTab('discipline')}
-            className="cursor-pointer bg-black/30 hover:bg-black/40 rounded-2xl p-3 border border-emerald-500/20 flex items-center gap-2.5 transition"
+            className="cursor-pointer bg-black/30 hover:bg-black/40 rounded-2xl p-2.5 border border-emerald-500/20 text-center transition"
           >
-            <div className="w-8 h-8 rounded-xl bg-teal-600/20 flex items-center justify-center text-teal-300">
-              <CheckCircle2 className="w-4 h-4" />
-            </div>
-            <div>
-              <span className="text-[10px] text-stone-300 block">Today's Pauses</span>
-              <span className="text-sm font-extrabold text-teal-300">
-                {stats.todayPausesCompleted} completed
-              </span>
-            </div>
+            <span className="text-[10px] text-stone-300 block uppercase">Today</span>
+            <span className="text-base font-extrabold font-mono text-white">
+              {stats.todayPausesCompleted}
+            </span>
+            <span className="text-[9px] text-stone-400 block">pauses</span>
+          </div>
+
+          <div
+            onClick={() => onNavigateTab('discipline')}
+            className="cursor-pointer bg-black/30 hover:bg-black/40 rounded-2xl p-2.5 border border-emerald-500/20 text-center transition"
+          >
+            <span className="text-[10px] text-stone-300 block uppercase">Go-Backs</span>
+            <span className="text-base font-extrabold font-mono text-teal-300">
+              {stats.goBacksToday || 0}
+            </span>
+            <span className="text-[9px] text-teal-400 block">mindful exits</span>
           </div>
         </div>
 

@@ -137,7 +137,34 @@ export interface ProtectedApp {
   isProtected: boolean;
   pauseCount: number;
   urgentAccessCount: number;
+  goBackCount?: number;
   lastIntercepted?: string;
+}
+
+export type GateMode = 'gentle' | 'balanced' | 'deep' | 'scheduled' | 'focus';
+export type CooldownDuration = 1 | 5 | 15 | 30 | 60; // minutes
+
+export interface GateLogEntry {
+  id: string;
+  timestamp: string;
+  appId: string;
+  appName: string;
+  action: 'completed_pause' | 'go_back' | 'emergency_bypass' | 'salah_prepare';
+  level: 1 | 2 | 3 | 4;
+  durationSeconds: number;
+  dhikrCount?: number;
+  intention?: string;
+  timeOfDay: 'morning' | 'afternoon' | 'evening' | 'night';
+}
+
+export interface FocusSession {
+  isActive: boolean;
+  durationMinutes: number;
+  startTime: string;
+  endTime: string;
+  targetAppIds?: string[];
+  pausesCompleted: number;
+  goBacksTriggered: number;
 }
 
 export interface DigitalDisciplineStats {
@@ -145,8 +172,24 @@ export interface DigitalDisciplineStats {
   totalPausesCompleted: number;
   todayPausesCompleted: number;
   urgentAccessesToday: number;
+  goBacksToday: number;
+  totalGoBacks: number;
   lastPauseDate?: string;
   temporaryAccessUntil?: string | null;
+  disciplineScore: number; // 0-100 calculated score
+  gateDhikrTotal: number;
+  voluntaryDhikrTotal: number;
+  activeFocusSession?: FocusSession | null;
+  recentLogs?: GateLogEntry[];
+}
+
+export interface GateSettings {
+  mode: GateMode;
+  cooldownMinutes: CooldownDuration;
+  salahFirstEnabled: boolean;
+  adaptiveIntensityEnabled: boolean;
+  hapticTactileEnabled: boolean;
+  defaultIntentionRequired: boolean;
 }
 
 export interface AppSettings {
@@ -177,6 +220,7 @@ export interface AppSettings {
   dailyReminderTime: string;
   hasCompletedOnboarding: boolean;
   prayerNotifications?: PrayerNotificationSettings;
+  gateSettings?: GateSettings;
 }
 
 export interface RabbanaDua {

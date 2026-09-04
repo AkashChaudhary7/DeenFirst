@@ -3,7 +3,7 @@ import { StorageService } from '../storageService';
 
 export interface UnlockRequestResult {
   granted: boolean;
-  reason?: 'pause_completed' | 'urgent_access' | 'temporary_pass_active';
+  reason?: 'pause_completed' | 'urgent_access' | 'temporary_pass_active' | 'go_back' | 'salah_prepare';
   expiresAt?: string;
 }
 
@@ -12,7 +12,11 @@ export interface IAppGateService {
   getImplementationType(): 'pwa_browser_simulated' | 'native_android_accessibility';
   getProtectedApps(): Promise<ProtectedApp[]>;
   setProtectedApps(apps: ProtectedApp[]): Promise<void>;
-  requestUnlock(appId: string, type: 'complete_pause' | 'urgent'): Promise<UnlockRequestResult>;
+  requestUnlock(
+    appId: string,
+    type: 'complete_pause' | 'urgent' | 'go_back',
+    details?: { dhikrCount?: number; level?: 1 | 2 | 3 | 4; intention?: string }
+  ): Promise<UnlockRequestResult>;
   grantTemporaryAccess(minutes: number): Promise<void>;
   detectAttemptedApp(packageName: string): Promise<ProtectedApp | null>;
   getUsageStatus(): Promise<DigitalDisciplineStats>;
@@ -43,14 +47,19 @@ export class BrowserAppGateService implements IAppGateService {
     StorageService.saveProtectedApps(apps);
   }
 
-  async requestUnlock(appId: string, type: 'complete_pause' | 'urgent'): Promise<UnlockRequestResult> {
+  async requestUnlock(
+    appId: string,
+    type: 'complete_pause' | 'urgent' | 'go_back',
+    details?: { dhikrCount?: number; level?: 1 | 2 | 3 | 4; intention?: string }
+  ): Promise<UnlockRequestResult> {
     const apps = StorageService.getProtectedApps();
     const targetApp = apps.find((a) => a.id === appId);
+    const appName = targetApp?.name || 'Distracting App';
 
     if (type === 'complete_pause') {
-      StorageService.recordCompletedPause();
+      StorageService.recordCompletedPause(details?.dhikrCount || 0);
       if (targetApp) {
-        targetApp.pauseCount += 1;
+        targetApp.pauseCount = (targetApp.pauseCount || 0) + 1;
         targetApp.lastIntercepted = new Date().toISOString();
         StorageService.saveProtectedApps(apps);
       }
@@ -58,10 +67,21 @@ export class BrowserAppGateService implements IAppGateService {
         granted: true,
         reason: 'pause_completed',
       };
+    } else if (type === 'go_back') {
+      StorageService.recordGoBackDecision();
+      if (targetApp) {
+        targetApp.goBackCount = (targetApp.goBackCount || 0) + 1;
+        targetApp.lastIntercepted = new Date().toISOString();
+        StorageService.saveProtectedApps(apps);
+      }
+      return {
+        granted: false,
+        reason: 'go_back',
+      };
     } else {
       StorageService.recordUrgentAccess();
       if (targetApp) {
-        targetApp.urgentAccessCount += 1;
+        targetApp.urgentAccessCount = (targetApp.urgentAccessCount || 0) + 1;
         targetApp.lastIntercepted = new Date().toISOString();
         StorageService.saveProtectedApps(apps);
       }
@@ -132,12 +152,16 @@ export class NativeAppGateService implements IAppGateService {
     StorageService.saveProtectedApps(apps);
   }
 
-  async requestUnlock(appId: string, type: 'complete_pause' | 'urgent'): Promise<UnlockRequestResult> {
+  async requestUnlock(
+    appId: string,
+    type: 'complete_pause' | 'urgent' | 'go_back',
+    details?: { dhikrCount?: number; level?: 1 | 2 | 3 | 4; intention?: string }
+  ): Promise<UnlockRequestResult> {
     if (this.isSupported()) {
-      return (window as any).DeenFirstNativeGate.requestUnlock(appId, type);
+      return (window as any).DeenFirstNativeGate.requestUnlock(appId, type, details);
     }
     const fallback = new BrowserAppGateService();
-    return fallback.requestUnlock(appId, type);
+    return fallback.requestUnlock(appId, type, details);
   }
 
   async grantTemporaryAccess(minutes: number): Promise<void> {

@@ -122,8 +122,11 @@ export default function App() {
     }
   };
 
-  const handleLaunchGate = (app?: ProtectedApp | null) => {
+  const [gateCustomLevel, setGateCustomLevel] = useState<1 | 2 | 3 | 4 | undefined>(undefined);
+
+  const handleLaunchGate = (app?: ProtectedApp | null, customLevel?: 1 | 2 | 3 | 4) => {
     setGateApp(app || null);
+    setGateCustomLevel(customLevel);
     setIsGateOpen(true);
   };
 
@@ -398,7 +401,11 @@ export default function App() {
         {isGateOpen && (
           <DigitalGateModal
             app={gateApp}
-            onClose={() => setIsGateOpen(false)}
+            customLevel={gateCustomLevel}
+            onClose={() => {
+              setIsGateOpen(false);
+              setGateCustomLevel(undefined);
+            }}
             onSuccess={handleGateSuccess}
           />
         )}

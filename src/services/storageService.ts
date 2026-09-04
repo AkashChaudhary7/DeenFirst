@@ -45,6 +45,14 @@ export const DEFAULT_SETTINGS: AppSettings = {
     isha: true,
     jumuah: true,
   },
+  gateSettings: {
+    mode: 'balanced',
+    cooldownMinutes: 5,
+    salahFirstEnabled: true,
+    adaptiveIntensityEnabled: true,
+    hapticTactileEnabled: true,
+    defaultIntentionRequired: false,
+  },
 };
 
 export const INITIAL_PROTECTED_APPS: ProtectedApp[] = [
@@ -57,6 +65,7 @@ export const INITIAL_PROTECTED_APPS: ProtectedApp[] = [
     isProtected: true,
     pauseCount: 14,
     urgentAccessCount: 2,
+    goBackCount: 9,
   },
   {
     id: 'youtube',
@@ -67,6 +76,7 @@ export const INITIAL_PROTECTED_APPS: ProtectedApp[] = [
     isProtected: true,
     pauseCount: 21,
     urgentAccessCount: 3,
+    goBackCount: 12,
   },
   {
     id: 'tiktok',
@@ -77,6 +87,7 @@ export const INITIAL_PROTECTED_APPS: ProtectedApp[] = [
     isProtected: true,
     pauseCount: 9,
     urgentAccessCount: 1,
+    goBackCount: 6,
   },
   {
     id: 'facebook',
@@ -87,6 +98,7 @@ export const INITIAL_PROTECTED_APPS: ProtectedApp[] = [
     isProtected: false,
     pauseCount: 4,
     urgentAccessCount: 0,
+    goBackCount: 2,
   },
   {
     id: 'games',
@@ -97,6 +109,7 @@ export const INITIAL_PROTECTED_APPS: ProtectedApp[] = [
     isProtected: true,
     pauseCount: 8,
     urgentAccessCount: 1,
+    goBackCount: 4,
   },
   {
     id: 'twitter_x',
@@ -107,6 +120,7 @@ export const INITIAL_PROTECTED_APPS: ProtectedApp[] = [
     isProtected: false,
     pauseCount: 5,
     urgentAccessCount: 0,
+    goBackCount: 1,
   },
 ];
 
@@ -115,8 +129,15 @@ export const INITIAL_STATS: DigitalDisciplineStats = {
   totalPausesCompleted: 48,
   todayPausesCompleted: 2,
   urgentAccessesToday: 0,
+  goBacksToday: 3,
+  totalGoBacks: 34,
   lastPauseDate: new Date().toISOString().split('T')[0],
   temporaryAccessUntil: null,
+  disciplineScore: 84,
+  gateDhikrTotal: 176,
+  voluntaryDhikrTotal: 340,
+  activeFocusSession: null,
+  recentLogs: [],
 };
 
 export class StorageService {
@@ -170,30 +191,61 @@ export class StorageService {
     }
   }
 
-  static recordCompletedPause(): DigitalDisciplineStats {
+  static calculateDisciplineScore(stats: DigitalDisciplineStats): number {
+    // Score based on: completions (40%), go backs (30%), consistency/streak (20%), urgent bypass ratio penalty (max 10% penalty)
+    const baseScore = 50;
+    const pauseBonus = Math.min(25, stats.todayPausesCompleted * 5);
+    const goBackBonus = Math.min(20, (stats.goBacksToday || 0) * 5);
+    const streakBonus = Math.min(15, stats.streakDays * 2);
+    const bypassPenalty = Math.min(15, (stats.urgentAccessesToday || 0) * 3);
+
+    const raw = baseScore + pauseBonus + goBackBonus + streakBonus - bypassPenalty;
+    return Math.max(10, Math.min(99, raw));
+  }
+
+  static recordCompletedPause(dhikrCount: number = 0): DigitalDisciplineStats {
     const stats = this.getDisciplineStats();
     const today = new Date().toISOString().split('T')[0];
     const isNewDay = stats.lastPauseDate !== today;
 
-    const newStats: DigitalDisciplineStats = {
+    const updated: DigitalDisciplineStats = {
       ...stats,
       totalPausesCompleted: stats.totalPausesCompleted + 1,
       todayPausesCompleted: (isNewDay ? 0 : stats.todayPausesCompleted) + 1,
       streakDays: isNewDay ? stats.streakDays + 1 : stats.streakDays,
+      gateDhikrTotal: (stats.gateDhikrTotal || 0) + dhikrCount,
       lastPauseDate: today,
     };
-    this.saveDisciplineStats(newStats);
-    return newStats;
+    updated.disciplineScore = this.calculateDisciplineScore(updated);
+    this.saveDisciplineStats(updated);
+    return updated;
+  }
+
+  static recordGoBackDecision(): DigitalDisciplineStats {
+    const stats = this.getDisciplineStats();
+    const today = new Date().toISOString().split('T')[0];
+    const isNewDay = stats.lastPauseDate !== today;
+
+    const updated: DigitalDisciplineStats = {
+      ...stats,
+      goBacksToday: (isNewDay ? 0 : (stats.goBacksToday || 0)) + 1,
+      totalGoBacks: (stats.totalGoBacks || 0) + 1,
+      lastPauseDate: today,
+    };
+    updated.disciplineScore = this.calculateDisciplineScore(updated);
+    this.saveDisciplineStats(updated);
+    return updated;
   }
 
   static recordUrgentAccess(): DigitalDisciplineStats {
     const stats = this.getDisciplineStats();
-    const newStats: DigitalDisciplineStats = {
+    const updated: DigitalDisciplineStats = {
       ...stats,
       urgentAccessesToday: stats.urgentAccessesToday + 1,
     };
-    this.saveDisciplineStats(newStats);
-    return newStats;
+    updated.disciplineScore = this.calculateDisciplineScore(updated);
+    this.saveDisciplineStats(updated);
+    return updated;
   }
 
   static getProtectedApps(): ProtectedApp[] {
@@ -305,7 +357,7 @@ export class StorageService {
     return { daily, weekly, lifetime, history };
   }
 
-  static recordDhikrIncrement(count: number = 1): { daily: number; weekly: number; lifetime: number; history: Record<string, number> } {
+  static recordDhikrIncrement(count: number = 1, isGateDhikr: boolean = false): { daily: number; weekly: number; lifetime: number; history: Record<string, number> } {
     const history = this.getDhikrHistory();
     const today = new Date().toISOString().split('T')[0];
     history[today] = (history[today] || 0) + count;
@@ -315,6 +367,15 @@ export class StorageService {
     } catch (e) {
       console.error('Failed saving dhikr history', e);
     }
+
+    // Update discipline stats voluntary vs gate count
+    const stats = this.getDisciplineStats();
+    if (isGateDhikr) {
+      stats.gateDhikrTotal = (stats.gateDhikrTotal || 0) + count;
+    } else {
+      stats.voluntaryDhikrTotal = (stats.voluntaryDhikrTotal || 0) + count;
+    }
+    this.saveDisciplineStats(stats);
 
     return this.getDhikrStats();
   }

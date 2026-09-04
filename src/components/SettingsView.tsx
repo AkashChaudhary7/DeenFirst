@@ -429,7 +429,101 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
       </div>
 
-      {/* 5. RAMADAN MODE & FEEDBACK */}
+      {/* 5. SPIRITUAL GATE & DISCIPLINE CONFIG */}
+      <div className="bg-white dark:bg-[#071d17] border border-emerald-800/15 dark:border-emerald-500/20 rounded-3xl p-5 space-y-4 shadow-sm">
+        <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider">
+          <Shield className="w-4 h-4" />
+          <span>Spiritual Gate & Discipline Intelligence</span>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div>
+            <h4 className="text-sm font-semibold text-stone-800 dark:text-stone-200">
+              Salah-First Priority
+            </h4>
+            <p className="text-xs text-stone-500 dark:text-stone-400">
+              Transform pauses into Salah alerts when prayer time is near
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const currentGate = settings.gateSettings || {
+                mode: 'balanced',
+                cooldownMinutes: 5,
+                salahFirstEnabled: true,
+                adaptiveIntensityEnabled: true,
+                hapticTactileEnabled: true,
+                defaultIntentionRequired: false,
+              };
+              onUpdateSettings({
+                gateSettings: {
+                  ...currentGate,
+                  salahFirstEnabled: !currentGate.salahFirstEnabled,
+                },
+              });
+            }}
+            className={`w-11 h-6 rounded-full p-0.5 transition-colors duration-200 ease-in-out focus:outline-none ${
+              settings.gateSettings?.salahFirstEnabled !== false
+                ? 'bg-emerald-600'
+                : 'bg-stone-300 dark:bg-stone-700'
+            }`}
+          >
+            <div
+              className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform duration-200 ease-in-out ${
+                settings.gateSettings?.salahFirstEnabled !== false
+                  ? 'translate-x-5'
+                  : 'translate-x-0'
+              }`}
+            />
+          </button>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div>
+            <h4 className="text-sm font-semibold text-stone-800 dark:text-stone-200">
+              Adaptive Pause Intensity
+            </h4>
+            <p className="text-xs text-stone-500 dark:text-stone-400">
+              Automatically escalate to Tactile Dhikr upon rapid reopening
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const currentGate = settings.gateSettings || {
+                mode: 'balanced',
+                cooldownMinutes: 5,
+                salahFirstEnabled: true,
+                adaptiveIntensityEnabled: true,
+                hapticTactileEnabled: true,
+                defaultIntentionRequired: false,
+              };
+              onUpdateSettings({
+                gateSettings: {
+                  ...currentGate,
+                  adaptiveIntensityEnabled: !currentGate.adaptiveIntensityEnabled,
+                },
+              });
+            }}
+            className={`w-11 h-6 rounded-full p-0.5 transition-colors duration-200 ease-in-out focus:outline-none ${
+              settings.gateSettings?.adaptiveIntensityEnabled !== false
+                ? 'bg-emerald-600'
+                : 'bg-stone-300 dark:bg-stone-700'
+            }`}
+          >
+            <div
+              className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform duration-200 ease-in-out ${
+                settings.gateSettings?.adaptiveIntensityEnabled !== false
+                  ? 'translate-x-5'
+                  : 'translate-x-0'
+              }`}
+            />
+          </button>
+        </div>
+      </div>
+
+      {/* 6. RAMADAN MODE & FEEDBACK */}
       <div className="bg-white dark:bg-[#071d17] border border-emerald-800/15 dark:border-emerald-500/20 rounded-3xl p-5 space-y-4 shadow-sm">
         <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider">
           <Moon className="w-4 h-4" />
