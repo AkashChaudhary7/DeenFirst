@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --font-arabic: 'Amiri', 'Scheherazade New', 'Traditional Arabic', serif;
+    --font-ui: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+
+    /* Light Theme Tokens */
+    --bg-page: #f5f6f1;
+    --bg-surface: #ffffff;
+    --bg-surface-elevated: #eef3ee;
+    --bg-surface-subtle: #e3ece4;
+    --border-main: rgba(6, 95, 70, 0.16);
+    --border-subtle: rgba(0, 0, 0, 0.07);
+    --text-primary: #1c1917;
+    --text-secondary: #44403c;
+    --text-muted: #78716c;
+    --accent-gold: #b45309;
+    --accent-gold-bg: rgba(217, 119, 6, 0.1);
+    --accent-emerald: #047857;
+    --nav-bg: rgba(255, 255, 255, 0.94);
+  }
+
+  .dark {
+    /* Dark Theme Tokens */
+    --bg-page: #04120e;
+    --bg-surface: #071d17;
+    --bg-surface-elevated: #092e23;
+    --bg-surface-subtle: #082920;
+    --border-main: rgba(16, 185, 129, 0.2);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --text-primary: #f5f5f4;
+    --text-secondary: #d6d3d1;
+    --text-muted: #a8a29e;
+    --accent-gold: #fbbf24;
+    --accent-gold-bg: rgba(251, 191, 36, 0.12);
+    --accent-emerald: #10b981;
+    --nav-bg: rgba(4, 18, 14, 0.95);
+  }
+}
+
+body {
+  font-family: var(--font-ui);
+  -webkit-tap-highlight-color: transparent;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.font-arabic {
+  font-family: var(--font-arabic);
+  direction: rtl;
+}
+
+.font-ui {
+  font-family: var(--font-ui);
+}
+
+/* Islamic Geometric Pattern Subtle Overlays */
+.bg-islamic-pattern {
+  background-image: radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.07) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.bg-islamic-stars {
+  background-image: 
+    radial-gradient(circle at 12px 12px, rgba(212, 175, 55, 0.06) 1.5px, transparent 1.5px),
+    radial-gradient(circle at 24px 24px, rgba(16, 185, 129, 0.05) 1.5px, transparent 1.5px);
+  background-size: 32px 32px;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(140, 150, 140, 0.3);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(140, 150, 140, 0.5);
+}
+
+/* Theme Surface & Text Utilities */
+.card-theme {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-main);
+  color: var(--text-primary);
+}
+
+.card-elevated-theme {
+  background-color: var(--bg-surface-elevated);
+  border: 1px solid var(--border-main);
+  color: var(--text-primary);
+}
+
+.card-subtle-theme {
+  background-color: var(--bg-surface-subtle);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.text-theme-primary {
+  color: var(--text-primary);
+}
+
+.text-theme-secondary {
+  color: var(--text-secondary);
+}
+
+.text-theme-muted {
+  color: var(--text-muted);
+}
+
+.text-theme-accent {
+  color: var(--accent-gold);
+}

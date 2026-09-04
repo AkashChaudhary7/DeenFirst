@@ -1,0 +1,6 @@
+{
+  "name": "DeenFirst",
+  "description": "Deen First. Then the Digital World. Mobile-First Muslim Spiritual PWA + Digital Discipline Companion.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
