@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   Bookmark,
   MapPin,
+  Calendar,
 } from 'lucide-react';
 import { AppSettings, DigitalDisciplineStats, LanguageCode, NavigationTab } from '../types';
 import { PrayerService, CalculatedPrayers } from '../services/prayerService';
@@ -97,16 +98,30 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
     <div id="deenfirst_home_dashboard" className="space-y-6 animate-fade-in pb-24">
       {/* Top Welcome & Hijri Date Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <span className="text-[11px] font-semibold text-emerald-800 dark:text-emerald-400 uppercase tracking-widest block">
-            {hijri.day} {hijri.monthArabic} {hijri.year} AH
+        <div
+          onClick={() => onNavigateTab('calendar')}
+          className="cursor-pointer group"
+          title="Open Islamic Lunar Calendar"
+        >
+          <span className="text-[11px] font-semibold text-emerald-800 dark:text-emerald-400 uppercase tracking-widest flex items-center gap-1.5">
+            <span>{hijri.day} {hijri.monthArabic} {hijri.year} AH</span>
+            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity">
+              (Calendar →)
+            </span>
           </span>
-          <h1 className="text-xl font-bold tracking-tight text-stone-900 dark:text-stone-100">
+          <h1 className="text-xl font-bold tracking-tight text-stone-900 dark:text-stone-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-300 transition">
             {hijri.formatted}
           </h1>
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => onNavigateTab('calendar')}
+            className="flex items-center gap-1 text-xs font-semibold py-1.5 px-3 rounded-xl bg-white dark:bg-[#071d17] border border-emerald-800/15 dark:border-emerald-500/20 text-emerald-800 dark:text-emerald-300 hover:border-emerald-500/40 shadow-sm transition"
+          >
+            <Calendar className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            <span>Hijri Calendar</span>
+          </button>
           <PWAInstallButton compact />
         </div>
       </div>

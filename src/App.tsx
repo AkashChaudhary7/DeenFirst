@@ -7,9 +7,15 @@ import {
   BookOpen,
   Volume2,
   ChevronLeft,
+  Calendar,
+  Bell,
+  X,
+  ArrowRight,
 } from 'lucide-react';
 import { AppSettings, DigitalDisciplineStats, NavigationTab, ProtectedApp } from './types';
 import { StorageService } from './services/storageService';
+import { PrayerService } from './services/prayerService';
+import { NotificationService, InAppNotification } from './services/notificationService';
 import { isRTL, getTranslation } from './localization/i18n';
 import { Navigation } from './components/Navigation';
 import { HomeDashboard } from './components/HomeDashboard';
@@ -21,6 +27,7 @@ import { DuasAndHadithView } from './components/DuasAndHadithView';
 import { SettingsView } from './components/SettingsView';
 import { QiblaFinderView } from './components/QiblaFinderView';
 import { BookmarksView } from './components/BookmarksView';
+import { IslamicCalendarView } from './components/IslamicCalendarView';
 import { DigitalGateModal } from './components/DigitalGateModal';
 import { OnboardingModal } from './components/OnboardingModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
@@ -33,6 +40,7 @@ export default function App() {
   const [isGateOpen, setIsGateOpen] = useState(false);
   const [gateApp, setGateApp] = useState<ProtectedApp | null>(null);
   const [showOnboarding, setShowOnboarding] = useState<boolean>(!settings.hasCompletedOnboarding);
+  const [activeNotification, setActiveNotification] = useState<InAppNotification | null>(null);
 
   const handleNavigateTab = (tab: NavigationTab, subTab?: any) => {
     setCurrentTab(tab);
@@ -73,6 +81,32 @@ export default function App() {
     document.documentElement.lang = settings.appLanguage;
   }, [rtl, settings.appLanguage]);
 
+  // Prayer Times Notification Service Background Check Loop
+  useEffect(() => {
+    // 1. Subscribe to in-app alerts
+    const unsubscribe = NotificationService.subscribe((notif) => {
+      setActiveNotification(notif);
+      // Auto dismiss after 8 seconds
+      setTimeout(() => {
+        setActiveNotification((prev) => (prev?.id === notif.id ? null : prev));
+      }, 8000);
+    });
+
+    // 2. Periodic check loop every 20 seconds
+    const checkLoop = () => {
+      const prayers = PrayerService.calculate(settings);
+      NotificationService.checkPrayerTimes(settings, prayers);
+    };
+
+    checkLoop();
+    const interval = setInterval(checkLoop, 20000);
+
+    return () => {
+      unsubscribe();
+      clearInterval(interval);
+    };
+  }, [settings]);
+
   const handleUpdateSettings = (updated: Partial<AppSettings>) => {
     const newSettings = { ...settings, ...updated };
     setSettings(newSettings);
@@ -104,6 +138,50 @@ export default function App() {
       }`}
     >
       <OfflineIndicator />
+
+      {/* Real-Time In-App Notification Toast Banner */}
+      {activeNotification && (
+        <div className="fixed top-4 left-4 right-4 max-w-md mx-auto z-50 animate-fade-in">
+          <div className="p-4 rounded-3xl bg-emerald-900/95 text-white border border-emerald-500/40 shadow-2xl backdrop-blur-md flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0 mt-0.5">
+                <Bell className="w-4 h-4 animate-bounce" />
+              </div>
+              <div className="space-y-0.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300">
+                  {activeNotification.type === 'jumuah_reminder'
+                    ? "Jumu'ah Blessed Notice"
+                    : 'Salah Alert'}
+                </span>
+                <h4 className="text-sm font-bold text-white leading-tight">
+                  {activeNotification.title}
+                </h4>
+                <p className="text-xs text-stone-200 leading-relaxed font-ui">
+                  {activeNotification.message}
+                </p>
+                <button
+                  onClick={() => {
+                    setCurrentTab('prayer');
+                    setActiveNotification(null);
+                  }}
+                  className="text-[11px] text-emerald-300 hover:text-white font-semibold underline pt-1 inline-flex items-center gap-1"
+                >
+                  <span>View Today's Prayer Schedule</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setActiveNotification(null)}
+              className="p-1 rounded-lg hover:bg-white/10 text-stone-300 hover:text-white transition shrink-0"
+              title="Dismiss"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Main Container */}
       <div className="max-w-md mx-auto min-h-screen flex flex-col relative px-4 pt-4">
@@ -180,6 +258,14 @@ export default function App() {
             <PrayerTimesView
               settings={settings}
               onUpdateSettings={handleUpdateSettings}
+              lang={settings.appLanguage}
+            />
+          )}
+
+          {/* DEDICATED ISLAMIC LUNAR CALENDAR PAGE (USER MANDATE) */}
+          {currentTab === 'calendar' && (
+            <IslamicCalendarView
+              onBack={() => setCurrentTab('home')}
               lang={settings.appLanguage}
             />
           )}
@@ -274,7 +360,7 @@ export default function App() {
             />
           )}
 
-          {/* DEDICATED PROFILE & SETTINGS PAGE (DISCIPLINE AND DUAS REMOVED) */}
+          {/* DEDICATED PROFILE & SETTINGS PAGE */}
           {currentTab === 'profile' && (
             <div className="space-y-4 animate-fade-in">
               <div className="flex items-center justify-between pb-2 border-b border-stone-200 dark:border-emerald-500/15">

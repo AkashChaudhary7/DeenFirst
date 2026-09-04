@@ -33,6 +33,18 @@ export const DEFAULT_SETTINGS: AppSettings = {
   soundEffectsEnabled: true,
   dailyReminderTime: '06:00',
   hasCompletedOnboarding: false,
+  prayerNotifications: {
+    enabled: true,
+    soundMode: 'chime',
+    reminderTiming: 0,
+    fajr: true,
+    sunrise: false,
+    dhuhr: true,
+    asr: true,
+    maghrib: true,
+    isha: true,
+    jumuah: true,
+  },
 };
 
 export const INITIAL_PROTECTED_APPS: ProtectedApp[] = [

@@ -17,7 +17,7 @@ export interface LanguageOption {
   dir: 'ltr' | 'rtl';
 }
 
-export type NavigationTab = 'home' | 'quran' | 'dhikr' | 'prayer' | 'profile' | 'discipline' | 'duas' | 'hadith' | 'qibla' | 'bookmarks';
+export type NavigationTab = 'home' | 'quran' | 'dhikr' | 'prayer' | 'profile' | 'discipline' | 'duas' | 'hadith' | 'qibla' | 'bookmarks' | 'calendar';
 
 export interface QuranSurah {
   number: number;
@@ -108,6 +108,24 @@ export interface IslamicEvent {
   monthName: string;
   description: string;
   observanceNote?: string;
+  category?: 'ramadan' | 'eid' | 'fasting' | 'blessed_night' | 'jumuah' | 'sacred_month' | 'holiday';
+  estimatedGregorian?: string;
+  daysRemaining?: number;
+  sunnahActs?: string[];
+  arabicName?: string;
+}
+
+export interface PrayerNotificationSettings {
+  enabled: boolean;
+  soundMode: 'adhan' | 'chime' | 'silent';
+  reminderTiming: 0 | 5 | 10 | 15; // minutes before prayer (0 = exact time)
+  fajr: boolean;
+  sunrise: boolean;
+  dhuhr: boolean;
+  asr: boolean;
+  maghrib: boolean;
+  isha: boolean;
+  jumuah: boolean;
 }
 
 export interface ProtectedApp {
@@ -158,6 +176,7 @@ export interface AppSettings {
   soundEffectsEnabled: boolean;
   dailyReminderTime: string;
   hasCompletedOnboarding: boolean;
+  prayerNotifications?: PrayerNotificationSettings;
 }
 
 export interface RabbanaDua {
